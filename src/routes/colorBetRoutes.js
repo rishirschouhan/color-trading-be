@@ -11,7 +11,7 @@ routes.get('/get-bet-history', accessToken, colorsBetsCntrl.userHistory);
 
 // PUT: Update bet history for a user (e.g., add new bet)
 routes.put(
-  "/update-bet-history/:id",
+  "/update-bet-history",
   accessToken,
   updateBetHistoryValidator,
   colorsBetsCntrl.updateUserHistory

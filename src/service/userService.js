@@ -75,7 +75,7 @@ class userService {
                     html: generateOtpEmail('login', { otpCode: otpData.otp }),
                 }))
             }
-            await Promise.all(otpOptions)
+            Promise.all(otpOptions)
             return { message: 'Do Register with your otp' };
         } catch (error) {
             throw error

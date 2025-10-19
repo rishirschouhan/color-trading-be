@@ -19,8 +19,8 @@ const updateBetHistoryValidator = (req, res, next) => {
     }
 
     req.locals = {
+      uid: req.locals.value.uid, // assuming :id is userId
       value,
-      uid: params.id // assuming :id is userId
     };
 
     next();
