@@ -1,16 +1,19 @@
 const colorBetHistoryDB = require('../db/colorBetHistory/colorBetHistory.db.processor'); // Your DB processor
 const util = require('../util/util');
+const userDB = require('../db/user/user.db.proccessor');
 
 class colorBetHistoryService {
   constructor() {
     this.colorBetHistoryDB = new colorBetHistoryDB();
+    this.userDB = new userDB();
   }
 
   /**
    * Inserts a new bet into the user's history and keeps only the last 10 bets.
+   * Deducts credits from user if sufficient balance, else throws error.
    * @param {String} uid - User ID
    * @param {Object} betData - Bet details: roundNumber, color, amount, status, timestamp
-   * @returns {Object} - Updated history document
+   * @returns {Object} - Updated user and bet history
    */
   async updateUserHistory(uid, betData) {
     try {
@@ -18,6 +21,22 @@ class colorBetHistoryService {
         throw { httpCode: 400, code: 'invalid-data', message: 'Missing required bet fields' };
       }
 
+      // 1. Fetch user
+      const user = await this.userDB.get(uid);
+      if (!user) {
+        throw { httpCode: 404, code: 'user-not-found', message: 'User not found' };
+      }
+
+      // 2. Check available credits
+      if ((user.creditCoins ?? 0) < betData.amount) {
+        throw { httpCode: 400, code: 'insufficient-credits', message: 'Insufficient Credit Coins' };
+      }
+
+      // 3. Deduct credits
+      const newCreditCoins = (user.creditCoins ?? 0) - betData.amount;
+      await this.userDB.update(uid, { creditCoins: newCreditCoins });
+
+      // 4. Save bet record in UserColorBetHistory
       const newBet = {
         roundNumber: betData.roundNumber,
         color: betData.color,
@@ -39,7 +58,9 @@ class colorBetHistoryService {
         { upsert: true, new: true }
       );
 
-      return util.responseFormate(updatedHistory);
+      // 5. Return updated user data and bet history
+      const updatedUser = await this.userDB.get(uid);
+      return util.responseFormate({ user: updatedUser, betHistory: updatedHistory });
     } catch (error) {
       console.error('Error in updateUserHistory:', error);
       throw error;

@@ -17,8 +17,9 @@ class userService {
     async getUser({ uid }) {
         try {
             const user = await this.userDB.get(uid);
+            console.log("::::::::::user", user);
             if (!user) throw { httpCode: 404, code: 'user-not-found', message: `Invalid User Id` }
-            return util.responseFormate(user);
+            return user;
         } catch (error) {
             throw error
         }

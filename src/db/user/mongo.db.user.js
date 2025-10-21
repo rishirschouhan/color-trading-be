@@ -1,7 +1,7 @@
 const userModal = require("../../modal/userModal")
 
 class userDb {
-    async get(id) {
+    async findById(id) {
         return await userModal.findById(id)
     }
 

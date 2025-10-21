@@ -55,6 +55,12 @@ const userSchema = new Schema({
         trim: true,
         match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     },
+    creditCoins: {
+        type: Number,
+        required: true,
+        default: 0,
+        min: 0
+    },
     otpData: otpDataSchema,
     createdAt: {
         type: Date,

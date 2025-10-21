@@ -7,7 +7,7 @@ class userDb {
     }
 
     async get(id) {
-        return await this.user.get(id)
+        return await this.user.findById(id)
     }
 
     async getByquery(query) {
