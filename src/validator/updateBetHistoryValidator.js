@@ -6,7 +6,7 @@ const updateBetHistoryValidator = (req, res, next) => {
   const schema = Joi.object({
     roundNumber: Joi.number().integer().min(1).required(),
     color: Joi.string().valid("red", "black", "green").required(),
-    amount: Joi.number().min(1).required(),
+    amount: Joi.number().min(10).required(),
     status: Joi.string().valid("pending", "win", "lose").required(),
     timestamp: Joi.date().iso().optional()
   });
