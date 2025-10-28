@@ -5,7 +5,7 @@ const routes = express.Router();
 
 // Public routes
 routes.use('/user', userRouter);
-routes.use('/color-bet', colorBetRouter);
+routes.use('/bet', colorBetRouter);
 
 
 module.exports = routes;

@@ -5,7 +5,7 @@ module.exports = async (req, res, next) => {
     const ColorBetHistoryService = new colorBetHistoryService();
     const { value, uid } = req.locals;
 
-    const result = await ColorBetHistoryService.updateUserHistory(uid, value);
+    const result = await ColorBetHistoryService.updateColorHistory(uid, value);
     return res.status(200).send(result);
   } catch (error) {
     if (error.code && error.message) {

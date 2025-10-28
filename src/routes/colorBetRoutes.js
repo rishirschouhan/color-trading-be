@@ -1,20 +1,41 @@
 const express = require('express');
 const accessToken = require('../middleware/accesstoken.js');
 const colorsBetsCntrl = require('../controller/colorBets/index.js');
-const { updateBetHistoryValidator } = require("../validator/updateBetHistoryValidator.js");
+const { updateBetHistoryValidator , updateMiningGameValidator, updateStairGameValidator, updateLudoGameValidator} = require("../validator/updateBetHistoryValidator.js");
 
 
 const routes = express();
 
-// GET: Fetch last 10 bets for a user
+// GET: Fetch all bet history for a user
 routes.get('/get-bet-history', accessToken, colorsBetsCntrl.userHistory);
 
 // PUT: Update bet history for a user (e.g., add new bet)
 routes.put(
-  "/update-bet-history",
+  "/color-history",
   accessToken,
   updateBetHistoryValidator,
-  colorsBetsCntrl.updateUserHistory
+  colorsBetsCntrl.updateColorHistory
+);
+
+routes.put(
+  "/mining-history",
+  accessToken,
+  updateMiningGameValidator,
+  colorsBetsCntrl.updateMiningGame
+);
+
+routes.put(
+  "/ludo-history",
+  accessToken,
+  updateLudoGameValidator,
+  colorsBetsCntrl.updateLudoGame
+);
+
+routes.put(
+  "/stair-history",
+  accessToken,
+  updateStairGameValidator,
+  colorsBetsCntrl.updateStairGame
 );
 
 
