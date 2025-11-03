@@ -86,29 +86,34 @@
 │    ✅ WIN! (color matches)                                     │
 │    Payout: 100 × 2 = 200                                       │
 │    Update status: "win"                                        │
+│    Update payout: 200                                          │
 │    Add 200 to User A's creditCoins                            │
 │                                                                 │
 │  User B: green, 200                                            │
 │    ❌ LOSE (color doesn't match)                               │
 │    Payout: 0                                                   │
 │    Update status: "lose"                                       │
+│    Update payout: 0                                            │
 │    No balance change (already deducted)                        │
 │                                                                 │
 │  User C: red, 150                                              │
 │    ✅ WIN!                                                      │
 │    Payout: 150 × 2 = 300                                       │
 │    Update status: "win"                                        │
+│    Update payout: 300                                          │
 │    Add 300 to User C's creditCoins                            │
 │                                                                 │
 │  User D: black, 50                                             │
 │    ❌ LOSE                                                      │
 │    Payout: 0                                                   │
 │    Update status: "lose"                                       │
+│    Update payout: 0                                            │
 │                                                                 │
 │  User E: green, 100                                            │
 │    ❌ LOSE                                                      │
 │    Payout: 0                                                   │
 │    Update status: "lose"                                       │
+│    Update payout: 0                                            │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -167,6 +172,7 @@
       color: "red",
       amount: 100,
       status: "pending",  ← Waiting for processing
+      payout: 0,          ← Will be updated by cron
       timestamp: "2024-11-03T14:30:20.000Z"
     }
   ]
@@ -195,6 +201,7 @@
       color: "red",
       amount: 100,
       status: "win",  ← Updated by cron
+      payout: 200,    ← Updated by cron (2x for red/green win)
       timestamp: "2024-11-03T14:30:20.000Z"
     }
   ]

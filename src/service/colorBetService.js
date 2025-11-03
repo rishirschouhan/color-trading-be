@@ -42,6 +42,7 @@ class colorBetHistoryService {
         color: betData.color,
         amount: betData.amount,
         status: betData.status,
+        payout: 0, // Will be updated by cron when round is processed
         timestamp: betData.timestamp || new Date()
       };
 

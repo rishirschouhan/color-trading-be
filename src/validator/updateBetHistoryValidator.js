@@ -8,6 +8,7 @@ const updateBetHistoryValidator = (req, res, next) => {
     color: Joi.string().valid("red", "black", "green").required(),
     amount: Joi.number().min(10).required(),
     status: Joi.string().valid("pending", "win", "lose").required(),
+    payout: Joi.number().min(0).optional(), // Optional, will be set by cron
     timestamp: Joi.date().iso().optional()
   });
 

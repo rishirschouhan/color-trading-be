@@ -9,7 +9,8 @@ module.exports = async (req, res, next) => {
     return res.status(200).send(result);
   } catch (error) {
     if (error.code && error.message) {
-      return res.status(400).send({ code: error.code, message: error.message });
+      const statusCode = error.httpCode || 400;
+      return res.status(statusCode).send({ code: error.code, message: error.message });
     }
     console.error('error', error.stack);
     res.status(500).send({ message: 'Internal Server Error' });

@@ -178,8 +178,8 @@ class ColorBettingCron {
         const payout = isWin ? bet.amount * multiplier : 0;
         const profit = isWin ? payout - bet.amount : -bet.amount;
 
-        // Update bet status in user's history
-        await this.updateBetStatus(bet.userId, bet._id, isWin ? 'win' : 'lose', roundNumber);
+        // Update bet status and payout in user's history
+        await this.updateBetStatus(bet.userId, bet._id, isWin ? 'win' : 'lose', payout, roundNumber);
 
         // Update user balance if win
         if (isWin) {
@@ -202,9 +202,9 @@ class ColorBettingCron {
   }
 
   /**
-   * Update bet status in user's color bet history
+   * Update bet status and payout in user's color bet history
    */
-  async updateBetStatus(userId, betId, status, roundNumber) {
+  async updateBetStatus(userId, betId, status, payout, roundNumber) {
     try {
       await this.colorBetHistoryDB.updateOne(
         { 
@@ -213,7 +213,8 @@ class ColorBettingCron {
         },
         {
           $set: {
-            'colorBetHistory.$.status': status
+            'colorBetHistory.$.status': status,
+            'colorBetHistory.$.payout': payout
           }
         }
       );

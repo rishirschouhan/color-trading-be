@@ -60,6 +60,7 @@ User's bet with status tracking:
   color: String,           // 'red', 'green', or 'black'
   amount: Number,
   status: String,          // 'pending', 'win', or 'lose'
+  payout: Number,          // Amount won (0 for losses, 2x or 10x for wins)
   timestamp: Date
 }
 ```
