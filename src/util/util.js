@@ -135,6 +135,29 @@ function dateFormat(mongoDate) {
     return formatted;
 }
 
+function roundResultResponseFormat(roundData) {
+    if (Array.isArray(roundData)) {
+        return roundData.map(round => ({
+            roundNumber: round.roundNumber,
+            winningColor: round.winningColor,
+            timestamp: round.timestamp,
+            totalBets: round.totalBets || 0,
+            totalAmount: round.totalAmount || 0,
+            winnersCount: round.winnersCount || 0,
+            totalPayout: round.totalPayout || 0
+        }));
+    }
+    
+    return {
+        roundNumber: roundData.roundNumber,
+        winningColor: roundData.winningColor,
+        timestamp: roundData.timestamp,
+        totalBets: roundData.totalBets || 0,
+        totalAmount: roundData.totalAmount || 0,
+        winnersCount: roundData.winnersCount || 0,
+        totalPayout: roundData.totalPayout || 0
+    };
+}
 
 module.exports = {
     generatPasswordeHash,
@@ -145,4 +168,5 @@ module.exports = {
     courseResponseFormate,
     refreshToken,
     dateFormat,
+    roundResultResponseFormat,
 }

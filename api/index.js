@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const routes = require('../src/routes/index.js');
 const { errorHandler } = require('../src/util/errorHandling');
+const ColorBettingCron = require('../src/cronJobs/colorBettingCron');
 const app = express();
 
 global.ErrorCodes = require('../src/constant/errorCodes')
@@ -24,17 +25,48 @@ app.use((req, res, next) => {
 
   next();
 })
+
+// Initialize the cron job
+const colorBettingCron = new ColorBettingCron(console);
+
+// Start the cron job when server starts
+colorBettingCron.start();
+
 app.use(routes)
 
 app.get('/', (req, res) => { res.status(200).send({ message: "Health Check", code: 200 }) })
+
+// Health check endpoint with cron status
+app.get('/health', (req, res) => {
+  res.status(200).send({
+    message: "Health Check",
+    code: 200,
+    cronStatus: colorBettingCron.getStatus()
+  });
+})
 
 app.all('*', (req, res) => {
   res.status(404).send({ code: "Note-Found", message: "Not Found" })
 })
 
 app.use(errorHandler);
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, stopping cron job...');
+  colorBettingCron.stop();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, stopping cron job...');
+  colorBettingCron.stop();
+  process.exit(0);
+});
+
 app.listen(port, async () => {
   console.info(`API is listening on port ${port}`);
+  console.info('Color betting cron job is active - executes at 45 seconds of every minute (UTC)');
 });
 
 module.exports = app;
