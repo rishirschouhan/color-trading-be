@@ -5,13 +5,18 @@ const nodemailer = require('nodemailer');
 // Set your SendGrid API key (use .env in real projects)
 let transporter = nodemailer.createTransport({
     host: config.mailConfig.EMAIL_HOST,
-    port: config.mailConfig.EMAIL_PORT,
-    secure: true,
-    port: 465,
+    port: 587, // Use 587 for STARTTLS (more reliable than 465)
+    secure: false, // false for STARTTLS, true for SSL on port 465
     auth: {
         user: config.mailConfig.EMAIL_USER,
         pass: config.mailConfig.EMAIL_PASSWORD
-    }
+    },
+    tls: {
+        rejectUnauthorized: false // Accept self-signed certificates (use cautiously)
+    },
+    connectionTimeout: 10000, // 10 seconds timeout
+    greetingTimeout: 10000,
+    socketTimeout: 10000
 });
 
 /**
@@ -35,11 +40,19 @@ async function sendEmail(options) {
 
     try {
         let info = await transporter.sendMail(mailOptions);
-        console.log('Email sent:', info.response);
+        console.log('✅ Email sent successfully:', info.response);
         return info; // Return the info object for successful sends
     } catch (error) {
-        console.log('Error:', error);
-        return false
+        console.error('❌ Email sending failed:');
+        console.error('Error Code:', error.code);
+        console.error('Error Message:', error.message);
+        
+        if (error.code === 'ESOCKET' || error.code === 'ETIMEDOUT') {
+            console.error('⚠️  Connection timeout - Check firewall/network settings');
+            console.error('Attempted connection to:', error.address, 'on port:', error.port);
+        }
+        
+        return false;
     }
 
 }
