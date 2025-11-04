@@ -90,17 +90,26 @@ const verifyOtpValidator = (req, res, next) => {
 const updateUserValidator = (req, res, next) => {
     const { body } = req
 
-    // const schema = Joi.object({
-    //     id: Joi.number().required()
-    // })
+    const schema = Joi.object({
+        name: Joi.string().trim().min(1).max(50).optional(),
+        emoji: Joi.string().trim().min(1).max(10).optional(),
+        email: Joi.string().email().optional(),
+        countryCode: Joi.string().max(3).optional(),
+        phoneNumber: Joi.string().pattern(/^[1-9][0-9]*$/).max(15).optional()
+    }).min(1) // At least one field must be provided
 
     try {
-        //     const { error, value } = schema.validate(params);
-        //     if (error) {
-        //         res.status(400).send({ message: error.message })
-        //         return;
-        //     
-        req.locals = { value: body, uid: req.params.id }
+        const { error, value } = schema.validate(body);
+        if (error) {
+            res.status(400).send({ message: error.message })
+            return;
+        }
+        // Get uid from access token middleware (req.locals.value.uid)
+        const uid = req.locals?.value?.uid;
+        if (!uid) {
+            return res.status(401).send({ message: 'Unauthorized - User ID not found' });
+        }
+        req.locals = { value, uid }
         next();
     }
     catch (err) {

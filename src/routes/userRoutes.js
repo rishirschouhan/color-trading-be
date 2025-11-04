@@ -15,6 +15,6 @@ routes.post('/verify-otp', UserReqValidator.verifyOtpValidator, userCntrl.verify
 routes.get('/refresh-token', refreshToken)
 
 routes.get('/get-profile', accessToken, userCntrl.user)
-routes.put('/update-user/:id', accessToken, UserReqValidator.updateUserValidator, userCntrl.update)
+routes.put('/update-user', accessToken, UserReqValidator.updateUserValidator, userCntrl.update)
 
 module.exports = routes;

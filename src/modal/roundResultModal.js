@@ -5,7 +5,11 @@ const roundResultSchema = new mongoose.Schema({
   roundNumber: {
     type: Number,
     required: true,
-    unique: true,
+    index: true
+  },
+  date: {
+    type: String,
+    required: true,
     index: true
   },
   winningColor: {
@@ -38,6 +42,9 @@ const roundResultSchema = new mongoose.Schema({
   versionKey: false,
   timestamps: true
 });
+
+// Add compound unique index for roundNumber and date
+roundResultSchema.index({ roundNumber: 1, date: 1 }, { unique: true });
 
 // Add index for efficient querying
 roundResultSchema.index({ timestamp: -1 });

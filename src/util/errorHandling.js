@@ -21,6 +21,11 @@ const errorHandler = (error, request, response, next) => {
     return;
   }
 
+  if (error.code && error.message) {
+    const statusCode = error.httpCode || 400;
+    return response.status(statusCode).send({ code: error.code, message: error.message,  });
+  }
+
   const status = 500;
   const message = "Internal Server Error";
 

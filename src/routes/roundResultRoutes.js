@@ -8,6 +8,9 @@ router.get('/current', roundResultController.getCurrentRound);
 // Get latest round results
 router.get('/latest', roundResultController.getLatestResults);
 
+// Get participant count for a specific round
+router.get('/:roundNumber/participants', roundResultController.getRoundResultParticipants);
+
 // Get specific round result by round number
 router.get('/:roundNumber', roundResultController.getRoundResult);
 

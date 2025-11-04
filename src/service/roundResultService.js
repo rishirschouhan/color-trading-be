@@ -58,6 +58,21 @@ class RoundResultService {
       throw error;
     }
   }
+
+  /**
+   * Get participant count for a specific round
+   * @param {Number} roundNumber - Round number
+   * @returns {Number} Participant count
+   */
+  async getRoundParticipantsCount(roundNumber) {
+    try {
+      const count = await this.roundResultDB.getParticipantsCount(roundNumber);
+      return count;
+    } catch (error) {
+      console.error('Error in getRoundParticipantsCount:', error);
+      return 0;
+    }
+  }
 }
 
 module.exports = RoundResultService;

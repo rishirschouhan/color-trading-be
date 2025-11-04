@@ -23,11 +23,14 @@ class RoundResultDBProcessor {
   /**
    * Get round result by round number
    * @param {Number} roundNumber - Round number
+   * @param {String} date - Date in YYYY-MM-DD format (optional, defaults to today)
    * @returns {Promise<Object>} Round result
    */
-  async getByRoundNumber(roundNumber) {
+  async getByRoundNumber(roundNumber, date = null) {
     try {
-      return await this.model.findOne({ roundNumber });
+      const moment = require('moment-timezone');
+      const queryDate = date || moment().tz('UTC').format('YYYY-MM-DD');
+      return await this.model.findOne({ roundNumber, date: queryDate });
     } catch (error) {
       console.error('Error getting round result:', error);
       throw error;
@@ -55,7 +58,7 @@ class RoundResultDBProcessor {
    */
   async getLatest(limit = 10) {
     try {
-      return await this.model.find().sort({ roundNumber: -1 }).limit(limit);
+      return await this.model.find().sort({ timestamp: -1 }).limit(limit);
     } catch (error) {
       console.error('Error getting latest round results:', error);
       throw error;
@@ -65,19 +68,43 @@ class RoundResultDBProcessor {
   /**
    * Update round result
    * @param {Number} roundNumber - Round number
+   * @param {String} date - Date in YYYY-MM-DD format
    * @param {Object} updateData - Data to update
    * @returns {Promise<Object>} Updated round result
    */
-  async update(roundNumber, updateData) {
+  async update(roundNumber, date, updateData) {
     try {
+      const moment = require('moment-timezone');
+      const queryDate = date || moment().tz('UTC').format('YYYY-MM-DD');
       return await this.model.findOneAndUpdate(
-        { roundNumber },
+        { roundNumber, date: queryDate },
         { $set: updateData },
         { new: true }
       );
     } catch (error) {
       console.error('Error updating round result:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Get participant count for a specific round
+   * @param {Number} roundNumber - Round number
+   * @returns {Promise<Number>} Participant count
+   */
+  async getParticipantsCount(roundNumber) {
+    try {
+      const ColorBetHistoryModal = require('../../modal/colorBetHistoryModal');
+      
+      // Count unique users who placed bets in this round
+      const count = await ColorBetHistoryModal.countDocuments({
+        'colorBetHistory.roundNumber': roundNumber
+      });
+      
+      return count;
+    } catch (error) {
+      console.error('Error getting participants count:', error);
+      return 0;
     }
   }
 }

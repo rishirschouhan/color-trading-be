@@ -63,6 +63,7 @@ function responseFormate(userData, withToken = true) {
         phoneNumber: userData.phoneNumber,
         name: userData.name,
         address: userData.address ?? {},
+        emoji: userData.emoji
     }
     if (withToken) response.authToken = customsAuthTokens({ uid: userData._id })
     return response;
@@ -139,6 +140,7 @@ function roundResultResponseFormat(roundData) {
     if (Array.isArray(roundData)) {
         return roundData.map(round => ({
             roundNumber: round.roundNumber,
+            date: round.date,
             winningColor: round.winningColor,
             timestamp: round.timestamp,
             totalBets: round.totalBets || 0,
@@ -150,6 +152,7 @@ function roundResultResponseFormat(roundData) {
     
     return {
         roundNumber: roundData.roundNumber,
+        date: roundData.date,
         winningColor: roundData.winningColor,
         timestamp: roundData.timestamp,
         totalBets: roundData.totalBets || 0,

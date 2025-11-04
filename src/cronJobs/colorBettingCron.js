@@ -142,10 +142,13 @@ class ColorBettingCron {
    */
   async saveRoundResult(roundNumber, winningColor, totalBets, totalAmount, winnersCount = 0, totalPayout = 0) {
     try {
-      const timestamp = moment().tz('UTC').toDate();
+      const now = moment().tz('UTC');
+      const timestamp = now.toDate();
+      const date = now.format('YYYY-MM-DD'); // Format: 2024-11-04
       
       await this.roundResultDB.create({
         roundNumber,
+        date,
         winningColor,
         timestamp,
         totalBets,
@@ -154,7 +157,7 @@ class ColorBettingCron {
         totalPayout
       });
 
-      this.logger.info(`Saved result for round #${roundNumber}: ${winningColor}`);
+      this.logger.info(`Saved result for round #${roundNumber} on ${date}: ${winningColor}`);
     } catch (error) {
       this.logger.error('Error saving round result:', error);
       throw error;

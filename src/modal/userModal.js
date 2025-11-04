@@ -29,6 +29,11 @@ const userSchema = new Schema({
         // required: true,
         trim: true
     },
+    emoji: {
+        type: String,
+        trim: true,
+        maxlength: 10
+    },
     age: {
         type: Number,
         min: 1,

@@ -106,7 +106,8 @@ class userService {
                 countryCode: userData.countryCode,
                 phoneNumber: userData.phoneNumber,
                 email: userData.email,
-                name: userData.name
+                name: userData.name,
+                emoji: userData.emoji
             }
             await this.userDB.update(uid, JSON.parse(JSON.stringify(updateData)));
             const user = await this.userDB.get(uid)

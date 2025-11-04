@@ -4,6 +4,7 @@ module.exports = async (req, res, next) => {
     try {
         const UserService = new userService();
         const { value, uid } = req.locals
+        console.log(">>>>>>>>>>>", uid, value);
         const result = await UserService.updateUser(uid, value)
         return res.status(200).send(result)
     } catch (error) {
