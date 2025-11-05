@@ -26,11 +26,18 @@ app.use((req, res, next) => {
   next();
 })
 
-// Initialize the cron job
+// Initialize the cron job only if not running on Vercel
+// Vercel uses its own cron system via vercel.json
+const isVercel = process.env.VERCEL === '1';
 const colorBettingCron = new ColorBettingCron(console);
 
-// Start the cron job when server starts
-colorBettingCron.start();
+// Start the cron job when server starts (only for local/non-Vercel environments)
+if (!isVercel) {
+  colorBettingCron.start();
+  console.info('Local cron job initialized - will execute at 45 seconds of every minute');
+} else {
+  console.info('Running on Vercel - cron job will be triggered via Vercel Cron at /api/cron endpoint');
+}
 
 app.use(routes)
 
@@ -51,18 +58,20 @@ app.all('*', (req, res) => {
 
 app.use(errorHandler);
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, stopping cron job...');
-  colorBettingCron.stop();
-  process.exit(0);
-});
+// Graceful shutdown (only for local environments)
+if (!isVercel) {
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM received, stopping cron job...');
+    colorBettingCron.stop();
+    process.exit(0);
+  });
 
-process.on('SIGINT', () => {
-  console.log('SIGINT received, stopping cron job...');
-  colorBettingCron.stop();
-  process.exit(0);
-});
+  process.on('SIGINT', () => {
+    console.log('SIGINT received, stopping cron job...');
+    colorBettingCron.stop();
+    process.exit(0);
+  });
+}
 
 app.listen(port, async () => {
   console.info(`API is listening on port ${port}`);
