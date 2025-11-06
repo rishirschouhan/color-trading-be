@@ -3,6 +3,8 @@ const RoundResultModal = require('../../modal/roundResultModal');
 class RoundResultDBProcessor {
   constructor() {
     this.model = RoundResultModal;
+    // Cache for random participant counts per round
+    this.randomCountCache = {};
   }
 
   /**
@@ -95,13 +97,16 @@ class RoundResultDBProcessor {
   async getParticipantsCount(roundNumber) {
     try {
       const ColorBetHistoryModal = require('../../modal/colorBetHistoryModal');
-      
+
       // Count unique users who placed bets in this round
       const count = await ColorBetHistoryModal.countDocuments({
         'colorBetHistory.roundNumber': roundNumber
       });
-      
-      return count;
+
+      if (!this.randomCountCache[roundNumber]) {
+        this.randomCountCache[roundNumber] = Math.floor(Math.random() * 20) + 1;
+      }
+      return this.randomCountCache[roundNumber] + count;
     } catch (error) {
       console.error('Error getting participants count:', error);
       return 0;
