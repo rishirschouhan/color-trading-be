@@ -1,6 +1,7 @@
 // emailService.js
 const config = require('../config/config');
 const nodemailer = require('nodemailer');
+const https = require('https');
 
 // Create transporter with improved timeout and connection settings
 function createTransporter() {
@@ -11,9 +12,12 @@ function createTransporter() {
         return null;
     }
 
+    // Detect if running on Render or similar cloud platform
+    const isCloudDeployment = process.env.RENDER || process.env.NODE_ENV === 'production';
+    
     const transportConfig = {
         host: config.mailConfig.EMAIL_HOST,
-        port: parseInt(config.mailConfig.EMAIL_PORT) || 587,
+        port: parseInt(config.mailConfig.EMAIL_PORT) || (isCloudDeployment ? 2587 : 587),
         secure: false, // false for STARTTLS, true for SSL on port 465
         auth: {
             user: config.mailConfig.EMAIL_USER,
@@ -23,22 +27,96 @@ function createTransporter() {
             rejectUnauthorized: false,
             ciphers: 'SSLv3'
         },
-        pool: true,
-        maxConnections: 1, // Reduced for better stability
-        maxMessages: 10,   // Reduced for better stability
+        pool: !isCloudDeployment, // Disable pooling on cloud platforms
+        maxConnections: isCloudDeployment ? 1 : 2,
+        maxMessages: isCloudDeployment ? 1 : 10,
         family: 4, // Force IPv4
-        connectionTimeout: 60000,  // Increased to 60 seconds
-        greetingTimeout: 30000,    // Increased to 30 seconds
-        socketTimeout: 60000,      // Increased to 60 seconds
-        logger: false,
-        debug: false
+        connectionTimeout: isCloudDeployment ? 30000 : 60000,
+        greetingTimeout: isCloudDeployment ? 15000 : 30000,
+        socketTimeout: isCloudDeployment ? 30000 : 60000,
+        logger: isCloudDeployment,
+        debug: isCloudDeployment
     };
+
+    // Log deployment environment
+    if (isCloudDeployment) {
+        console.log('🌐 Cloud deployment detected - using optimized SMTP settings');
+        console.log('📧 SMTP Config:', {
+            host: transportConfig.host,
+            port: transportConfig.port,
+            secure: transportConfig.secure
+        });
+    }
 
     console.log(`📧 Creating email transporter for: ${config.mailConfig.EMAIL_HOST}:${transportConfig.port}`);
     return nodemailer.createTransport(transportConfig);
 }
 
 let transporter = createTransporter();
+
+// Fallback email function using SendGrid HTTP API (works better on cloud platforms)
+async function sendEmailViaSendGrid(options) {
+    const sendgridApiKey = process.env.SENDGRID_API_KEY;
+    
+    if (!sendgridApiKey) {
+        console.log('⚠️  SendGrid API key not found, cannot use HTTP fallback');
+        return false;
+    }
+
+    const emailData = JSON.stringify({
+        personalizations: [{
+            to: [{ email: options.to }],
+            subject: options.subject
+        }],
+        from: { email: config.mailConfig.EMAIL_USER },
+        content: [
+            { type: 'text/plain', value: options.text || '' },
+            { type: 'text/html', value: options.html || options.text || '' }
+        ]
+    });
+
+    const requestOptions = {
+        hostname: 'api.sendgrid.com',
+        port: 443,
+        path: '/v3/mail/send',
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${sendgridApiKey}`,
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(emailData)
+        }
+    };
+
+    return new Promise((resolve, reject) => {
+        const req = https.request(requestOptions, (res) => {
+            let responseData = '';
+            res.on('data', (chunk) => responseData += chunk);
+            res.on('end', () => {
+                if (res.statusCode >= 200 && res.statusCode < 300) {
+                    console.log('✅ Email sent via SendGrid HTTP API');
+                    resolve(true);
+                } else {
+                    console.error('❌ SendGrid API error:', res.statusCode, responseData);
+                    resolve(false);
+                }
+            });
+        });
+
+        req.on('error', (error) => {
+            console.error('❌ SendGrid HTTP request failed:', error.message);
+            resolve(false);
+        });
+
+        req.setTimeout(30000, () => {
+            console.error('❌ SendGrid HTTP request timeout');
+            req.destroy();
+            resolve(false);
+        });
+
+        req.write(emailData);
+        req.end();
+    });
+}
 
 /**
  * Send an email using SendGrid
@@ -122,6 +200,16 @@ async function sendEmail(options) {
                 console.error('   • Incorrect SMTP settings');
                 if (error.address && error.port) {
                     console.error('   • Attempted connection to:', error.address, 'on port:', error.port);
+                }
+                
+                // Try HTTP API fallback on cloud platforms
+                const isCloudDeployment = process.env.RENDER || process.env.NODE_ENV === 'production';
+                if (isCloudDeployment) {
+                    console.log('🔄 Attempting HTTP API fallback...');
+                    const fallbackResult = await sendEmailViaSendGrid(options);
+                    if (fallbackResult) {
+                        return fallbackResult;
+                    }
                 }
             }
 
