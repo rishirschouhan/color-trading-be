@@ -34,8 +34,8 @@ function createTransporter() {
         connectionTimeout: isCloudDeployment ? 30000 : 60000,
         greetingTimeout: isCloudDeployment ? 15000 : 30000,
         socketTimeout: isCloudDeployment ? 30000 : 60000,
-        logger: isCloudDeployment,
-        debug: isCloudDeployment
+        logger: false,
+        debug: false
     };
 
     // Log deployment environment
