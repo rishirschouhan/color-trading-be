@@ -12,11 +12,15 @@ let transporter = nodemailer.createTransport({
         pass: config.mailConfig.EMAIL_PASSWORD
     },
     tls: {
-        rejectUnauthorized: false // Accept self-signed certificates (use cautiously)
+        rejectUnauthorized: false
     },
-    connectionTimeout: 10000, // 10 seconds timeout
-    greetingTimeout: 10000,
-    socketTimeout: 10000
+    pool: true,
+    maxConnections: 2,
+    maxMessages: 100,
+    family: 4,
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 15000
 });
 
 /**
@@ -38,23 +42,36 @@ async function sendEmail(options) {
         html: options.html,
     };
 
-    try {
-        let info = await transporter.sendMail(mailOptions);
-        console.log('✅ Email sent successfully:', info.response);
-        return info; // Return the info object for successful sends
-    } catch (error) {
-        console.error('❌ Email sending failed:');
-        console.error('Error Code:', error.code);
-        console.error('Error Message:', error.message);
-        
-        if (error.code === 'ESOCKET' || error.code === 'ETIMEDOUT') {
-            console.error('⚠️  Connection timeout - Check firewall/network settings');
-            console.error('Attempted connection to:', error.address, 'on port:', error.port);
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const transientCodes = new Set(['ESOCKET', 'ETIMEDOUT', 'ECONNRESET', 'EAI_AGAIN', 'ENOTFOUND', 'ECONNREFUSED']);
+    const maxRetries = 3;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            let info = await transporter.sendMail(mailOptions);
+            console.log('✅ Email sent successfully:', info.response);
+            return info;
+        } catch (error) {
+            console.error('❌ Email sending failed:');
+            console.error('Error Code:', error.code);
+            console.error('Error Message:', error.message);
+
+            if (transientCodes.has(error.code) && attempt < maxRetries) {
+                const backoff = Math.min(2000 * Math.pow(2, attempt - 1), 8000);
+                await delay(backoff);
+                continue;
+            }
+
+            if (error.code === 'ESOCKET' || error.code === 'ETIMEDOUT') {
+                console.error('⚠️  Connection timeout - Check firewall/network settings');
+                console.error('Attempted connection to:', error.address, 'on port:', error.port);
+            }
+
+            return false;
         }
-        
-        return false;
     }
 
+    return false;
 }
 
 module.exports = {
